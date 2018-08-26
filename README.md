@@ -22,5 +22,3 @@ assert_eq!(&bytes, b"Hello, Wello!");
 
 [`ptr::copy`]: https://doc.rust-lang.org/std/ptr/fn.copy.html
 [PR #53652]: https://github.com/rust-lang/rust/pull/53652
-
-License: MIT
