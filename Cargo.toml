@@ -1,0 +1,9 @@
+[package]
+name = "copy_in_place"
+version = "0.1.0"
+authors = ["Jack O'Connor"]
+description = "a safe wrapper around ptr::copy for efficient copying within slices"
+license = "MIT"
+repository = "https://github.com/oconnor663/copy_in_place"
+documentation = "https://docs.rs/copy_in_place"
+readme = "README.md"
