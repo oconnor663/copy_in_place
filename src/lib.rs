@@ -4,7 +4,7 @@
 //!
 //! This crate provides a single function, a safe wrapper around [`ptr::copy`]
 //! for efficient copying within slices. The goal is to eventually include this
-//! as a built-in method slices in libcore ([PR #53652]).
+//! as a built-in method on slices in libcore ([PR #53652]).
 //!
 //! # Examples
 //!
