@@ -32,7 +32,7 @@
 /// both regions. The two regions may overlap.
 ///
 /// The ends of the two regions, `src + count` and `dest + count`, must be
-/// less than or equal to `self.len()`.
+/// less than or equal to `slice.len()`.
 ///
 /// # Panics
 ///
