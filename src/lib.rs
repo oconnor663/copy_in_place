@@ -37,7 +37,8 @@ use core::ops::RangeBounds;
 ///
 /// # Panics
 ///
-/// This function will panic if either range exceeds the end of the slice.
+/// This function will panic if either range exceeds the end of the slice, or if
+/// the end of `src` is before the start.
 ///
 /// # Examples
 ///
