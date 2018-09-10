@@ -14,7 +14,7 @@
 //! # use copy_in_place::copy_in_place;
 //! let mut bytes = *b"Hello, World!";
 //!
-//! copy_in_place(&mut bytes, 1, 8, 4);
+//! copy_in_place(&mut bytes, 1..5, 8);
 //!
 //! assert_eq!(&bytes, b"Hello, Wello!");
 //! ```
@@ -24,19 +24,20 @@
 
 #![no_std]
 
+use core::ops::Bound;
+use core::ops::RangeBounds;
+
 /// Copies elements from one part of a slice to another part of the same
 /// slice, using a memmove.
 ///
-/// `src` is the starting index of the source region. `dest` is the starting
-/// index of the destination region. `count` is the number of elements in
-/// both regions. The two regions may overlap.
-///
-/// The ends of the two regions, `src + count` and `dest + count`, must be
-/// less than or equal to `slice.len()`.
+/// `src` is the range within the slice to copy from. `dest` is the starting
+/// index of the range within the slice to copy to, which will have the same
+/// length as `src`. The two ranges may overlap. The ends of the two ranges must
+/// be less than or equal to `slice.len()`.
 ///
 /// # Panics
 ///
-/// This function will panic if either region exceeds the end of the slice.
+/// This function will panic if either range exceeds the end of the slice.
 ///
 /// # Examples
 ///
@@ -46,17 +47,27 @@
 /// # use copy_in_place::copy_in_place;
 /// let mut bytes = *b"Hello, World!";
 ///
-/// copy_in_place(&mut bytes, 1, 8, 4);
+/// copy_in_place(&mut bytes, 1..5, 8);
 ///
 /// assert_eq!(&bytes, b"Hello, Wello!");
 /// ```
-pub fn copy_in_place<T: Copy>(slice: &mut [T], src: usize, dest: usize, count: usize) {
-    // Avoid computing `src + count` or `dest + count`, which could overflow.
-    assert!(count <= slice.len());
-    assert!(src <= slice.len() - count);
-    assert!(dest <= slice.len() - count);
+pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, dest: usize) {
+    let src_start = match src.start_bound() {
+        Bound::Included(&n) => n,
+        Bound::Excluded(&n) => n.saturating_add(1),
+        Bound::Unbounded => 0,
+    };
+    let src_end = match src.end_bound() {
+        Bound::Included(&n) => n.saturating_add(1),
+        Bound::Excluded(&n) => n,
+        Bound::Unbounded => slice.len(),
+    };
+    assert!(src_start <= src_end, "src end is before src start");
+    assert!(src_end <= slice.len(), "src is out of bounds");
+    let count = src_end - src_start;
+    assert!(dest <= slice.len() - count, "dest is out of bounds");
     unsafe {
-        let src_ptr = slice.get_unchecked(src) as *const T;
+        let src_ptr = slice.get_unchecked(src_start) as *const T;
         let dest_ptr = slice.get_unchecked_mut(dest) as *mut T;
         core::ptr::copy(src_ptr, dest_ptr, count);
     }

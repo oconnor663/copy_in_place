@@ -15,7 +15,7 @@ Copying four bytes within a slice:
 ```rust
 let mut bytes = *b"Hello, World!";
 
-copy_in_place(&mut bytes, 1, 8, 4);
+copy_in_place(&mut bytes, 1..5, 8);
 
 assert_eq!(&bytes, b"Hello, Wello!");
 ```
