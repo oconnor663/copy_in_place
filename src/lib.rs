@@ -55,11 +55,11 @@ use core::ops::RangeBounds;
 pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, dest: usize) {
     let src_start = match src.start_bound() {
         Bound::Included(&n) => n,
-        Bound::Excluded(&n) => n.saturating_add(1),
+        Bound::Excluded(&n) => n.checked_add(1).expect("range bound overflows usize"),
         Bound::Unbounded => 0,
     };
     let src_end = match src.end_bound() {
-        Bound::Included(&n) => n.saturating_add(1),
+        Bound::Included(&n) => n.checked_add(1).expect("range bound overflows usize"),
         Bound::Excluded(&n) => n,
         Bound::Unbounded => slice.len(),
     };
