@@ -68,8 +68,10 @@ pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, de
     let count = src_end - src_start;
     assert!(dest <= slice.len() - count, "dest is out of bounds");
     unsafe {
-        let src_ptr = slice.get_unchecked(src_start) as *const T;
-        let dest_ptr = slice.get_unchecked_mut(dest) as *mut T;
-        core::ptr::copy(src_ptr, dest_ptr, count);
+        core::ptr::copy(
+            slice.get_unchecked(src_start),
+            slice.get_unchecked_mut(dest),
+            count,
+        );
     }
 }
