@@ -54,6 +54,7 @@ use core::ops::RangeBounds;
 ///
 /// assert_eq!(&bytes, b"Hello, Wello!");
 /// ```
+#[inline]
 pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, dest: usize) {
     let src_start = match src.start_bound() {
         Bound::Included(&n) => n,
