@@ -26,9 +26,6 @@
 
 #![no_std]
 
-use core::ops::Bound;
-use core::ops::RangeBounds;
-
 /// Copies elements from one part of a slice to another part of the same
 /// slice, using a memmove.
 ///
@@ -54,26 +51,19 @@ use core::ops::RangeBounds;
 ///
 /// assert_eq!(&bytes, b"Hello, Wello!");
 /// ```
-pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, dest: usize) {
-    let src_start = match src.start_bound() {
-        Bound::Included(&n) => n,
-        Bound::Excluded(&n) => n.checked_add(1).expect("range bound overflows usize"),
-        Bound::Unbounded => 0,
+pub fn copy_in_place<T, I>(slice: &mut [T], src: I, dest: usize)
+where
+    T: Copy,
+    I: core::slice::SliceIndex<[T], Output = [T]>,
+{
+    let (src_ptr, src_len) = {
+        // This panics if src is out of bounds or inverted.
+        let src_slice = &slice[src];
+        (src_slice.as_ptr(), src_slice.len())
     };
-    let src_end = match src.end_bound() {
-        Bound::Included(&n) => n.checked_add(1).expect("range bound overflows usize"),
-        Bound::Excluded(&n) => n,
-        Bound::Unbounded => slice.len(),
-    };
-    assert!(src_start <= src_end, "src end is before src start");
-    assert!(src_end <= slice.len(), "src is out of bounds");
-    let count = src_end - src_start;
-    assert!(dest <= slice.len() - count, "dest is out of bounds");
+    assert!(dest <= slice.len() - src_len, "dest is out of bounds");
     unsafe {
-        core::ptr::copy(
-            slice.get_unchecked(src_start),
-            slice.get_unchecked_mut(dest),
-            count,
-        );
+        let dest_ptr = slice.as_mut_ptr().add(dest);
+        core::ptr::copy(src_ptr, dest_ptr, src_len);
     }
 }
