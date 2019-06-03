@@ -29,6 +29,30 @@
 use core::ops::Bound;
 use core::ops::RangeBounds;
 
+fn slice_start_and_end<T, R: RangeBounds<usize>>(slice: &[T], range: R) -> (usize, usize) {
+    let start = match range.start_bound() {
+        Bound::Included(&n) => n,
+        Bound::Excluded(&n) => n.checked_add(1).expect("range bound overflows usize"),
+        Bound::Unbounded => 0,
+    };
+    let end = match range.end_bound() {
+        Bound::Included(&n) => n.checked_add(1).expect("range bound overflows usize"),
+        Bound::Excluded(&n) => n,
+        Bound::Unbounded => slice.len(),
+    };
+    (start, end)
+}
+
+fn get_range<T, R: RangeBounds<usize>>(slice: &[T], range: R) -> &[T] {
+    let (start, end) = slice_start_and_end(slice, range);
+    &slice[start..end]
+}
+
+// fn get_range_mut<T, R: RangeBounds<usize>>(slice: &mut [T], range: R) -> &mut [T] {
+//     let (start, end) = slice_start_and_end(slice, range);
+//     &mut slice[start..end]
+// }
+
 /// Copies elements from one part of a slice to another part of the same
 /// slice, using a memmove.
 ///
@@ -55,25 +79,13 @@ use core::ops::RangeBounds;
 /// assert_eq!(&bytes, b"Hello, Wello!");
 /// ```
 pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, dest: usize) {
-    let src_start = match src.start_bound() {
-        Bound::Included(&n) => n,
-        Bound::Excluded(&n) => n.checked_add(1).expect("range bound overflows usize"),
-        Bound::Unbounded => 0,
+    let (src_ptr, src_len) = {
+        let src_slice = get_range(slice, src);
+        (src_slice.as_ptr(), src_slice.len())
     };
-    let src_end = match src.end_bound() {
-        Bound::Included(&n) => n.checked_add(1).expect("range bound overflows usize"),
-        Bound::Excluded(&n) => n,
-        Bound::Unbounded => slice.len(),
-    };
-    assert!(src_start <= src_end, "src end is before src start");
-    assert!(src_end <= slice.len(), "src is out of bounds");
-    let count = src_end - src_start;
-    assert!(dest <= slice.len() - count, "dest is out of bounds");
+    assert!(dest <= slice.len() - src_len, "dest is out of bounds");
     unsafe {
-        core::ptr::copy(
-            slice.get_unchecked(src_start),
-            slice.get_unchecked_mut(dest),
-            count,
-        );
+        let dest_ptr = slice.as_mut_ptr().add(dest);
+        core::ptr::copy(src_ptr, dest_ptr, src_len);
     }
 }
