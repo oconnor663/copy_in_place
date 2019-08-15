@@ -3,10 +3,12 @@
 //! [Crate](https://crates.io/crates/copy_in_place)
 //!
 //! This crate provides a single function, a safe wrapper around [`ptr::copy`]
-//! for efficient copying within slices. The goal is to eventually include this
-//! as a built-in method on slices in libcore ([PR #53652]). (**Update** 24
-//! September 2018: This function has landed in nightly as
-//! [`copy_within`](https://doc.rust-lang.org/nightly/std/primitive.slice.html#method.copy_within).)
+//! for efficient copying within slices.
+//!
+//! **Note:** As of Rust 1.37, the standard library provides the equivalent
+//! [`copy_within`](https://doc.rust-lang.org/std/primitive.slice.html#method.copy_within)
+//! method on slices. This crate is only useful for projects that need to
+//! support older versions of Rust.
 //!
 //! # Examples
 //!
