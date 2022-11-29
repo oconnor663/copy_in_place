@@ -5,10 +5,9 @@
 //! This crate provides a single function, a safe wrapper around [`ptr::copy`]
 //! for efficient copying within slices.
 //!
-//! **Note:** As of Rust 1.37, the standard library provides the equivalent
+//! **DEPRECATED:** As of Rust 1.37, the standard library provides the equivalent
 //! [`copy_within`](https://doc.rust-lang.org/std/primitive.slice.html#method.copy_within)
-//! method on slices. This crate is only useful for projects that need to
-//! support older versions of Rust.
+//! method on slices. This crate is deprecated, and it won't receive any further updates or fixes.
 //!
 //! # Examples
 //!
