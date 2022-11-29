@@ -72,10 +72,45 @@ pub fn copy_in_place<T: Copy, R: RangeBounds<usize>>(slice: &mut [T], src: R, de
     let count = src_end - src_start;
     assert!(dest <= slice.len() - count, "dest is out of bounds");
     unsafe {
-        core::ptr::copy(
-            slice.get_unchecked(src_start),
-            slice.get_unchecked_mut(dest),
-            count,
-        );
+        // Derive both `src_ptr` and `dest_ptr` from the same loan
+        let ptr = slice.as_mut_ptr();
+        let src_ptr = ptr.add(src_start);
+        let dest_ptr = ptr.add(dest);
+        core::ptr::copy(src_ptr, dest_ptr, count);
     }
+}
+
+#[test]
+fn test_happy_path() {
+    let mut array = *b"Hello, World!";
+    copy_in_place(&mut array, 1..5, 8);
+    assert_eq!(&array, b"Hello, Wello!");
+}
+
+#[test]
+fn test_overlapping() {
+    let mut array = *b"Hello, World!";
+    copy_in_place(&mut array, 1..5, 2);
+    assert_eq!(&array, b"Heello World!");
+}
+
+#[test]
+#[should_panic]
+fn test_out_of_bounds() {
+    let mut array = *b"Hello, World!";
+    copy_in_place(&mut array, 1..5, 10);
+}
+
+#[test]
+fn test_empty_range() {
+    let mut array = *b"Hello, World!";
+    copy_in_place(&mut array, 1..1, 8);
+    assert_eq!(&array, b"Hello, World!");
+}
+
+#[test]
+fn test_empty_slice() {
+    let mut array: [u8; 0] = [];
+    copy_in_place(&mut array, 0..0, 0);
+    assert_eq!(array, []);
 }
